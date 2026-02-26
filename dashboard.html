@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarekiEA – Strateegia Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--surface3:#1f2a40;
+--border:#2a3555;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--red:#ef4444;
+--gold:#f59e0b;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:60px 1fr;min-height:100vh}
+/* Header */
+.header{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:10}
+.header h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
+.header .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Sidebar */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:16px}
+.section{margin-bottom:20px}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:12px;font-weight:600}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.field input,.field select{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;transition:border .2s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{width:100%;padding:10px;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(99,102,241,.4)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);margin-top:8px}
+.btn-danger:hover{background:rgba(239,68,68,.25)}
+.btn-export{background:rgba(245,158,11,.12);color:var(--gold);border:1px solid rgba(245,158,11,.3);margin-top:8px}
+.btn-export:hover{background:rgba(245,158,11,.22)}
+/* Main */
+.main{padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card .label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.card .value{font-size:22px;font-weight:700}
+.card .sub{font-size:11px;color:var(--text3);margin-top:2px}
+.green{color:var(--green)}.red{color:var(--red)}.gold{color:var(--gold)}.blue{color:var(--accent2)}
+/* Signal log */
+.log-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;flex:1;display:flex;flex-direction:column;min-height:300px}
+.log-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.log-header h3{font-size:14px;font-weight:600}
+.log-body{flex:1;overflow-y:auto;padding:8px 12px;font-family:'Consolas','Courier New',monospace;font-size:12px}
+.log-entry{padding:6px 8px;border-radius:4px;margin-bottom:4px;display:flex;gap:10px;align-items:flex-start}
+.log-entry:hover{background:var(--surface2)}
+.log-time{color:var(--text3);white-space:nowrap;min-width:70px}
+.log-buy{border-left:3px solid var(--green)}
+.log-sell{border-left:3px solid var(--red)}
+.log-info{border-left:3px solid var(--accent2)}
+.log-warn{border-left:3px solid var(--gold)}
+/* Strategy rules */
+.rules-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.rules-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.rules-header h3{font-size:14px;font-weight:600}
+.rules-body{padding:12px 16px}
+.rule{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.rule-info{flex:1}
+.rule-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.rule-desc{font-size:11px;color:var(--text3)}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:var(--surface3);border-radius:11px;transition:.3s;border:1px solid var(--border)}
+.toggle .slider:before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;left:2px;top:2px;transition:.3s}
+.toggle input:checked+.slider{background:var(--accent);border-color:var(--accent)}
+.toggle input:checked+.slider:before{transform:translateX(18px)}
+/* Chart area */
+.chart-area{background:var(--surface);border:1px solid var(--border);border-radius:10px;height:220px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.chart-canvas{width:100%;height:100%}
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;transform:translateY(80px);opacity:0;transition:all .3s;z-index:100}
+.toast.show{transform:translateY(0);opacity:1}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.cards{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <h1>⚡ MarekiEA Dashboard</h1>
+    <div class="status"><span class="dot"></span><span id="statusText">Demoreziim</span></div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="section">
+      <div class="section-title">📊 Strateegia seaded</div>
+      <div class="field"><label>Kiire MA periood</label><input type="number" id="fastMA" value="10" min="2" max="500"></div>
+      <div class="field"><label>Aeglane MA periood</label><input type="number" id="slowMA" value="50" min="5" max="1000"></div>
+      <div class="field"><label>MA meetod</label>
+        <select id="maMethod"><option value="EMA" selected>EMA</option><option value="SMA">SMA</option><option value="SMMA">SMMA</option><option value="LWMA">LWMA</option></select>
+      </div>
+      <div class="field"><label>RSI periood</label><input type="number" id="rsiPeriod" value="14" min="2" max="100"></div>
+      <div class="field-row">
+        <div class="field"><label>RSI üleostetud</label><input type="number" id="rsiOB" value="70" min="50" max="95"></div>
+        <div class="field"><label>RSI ülemüüdud</label><input type="number" id="rsiOS" value="30" min="5" max="50"></div>
+      </div>
+      <div class="field"><label>Ajakava</label>
+        <select id="timeframe"><option value="M15">M15</option><option value="H1" selected>H1</option><option value="H4">H4</option><option value="D1">D1</option></select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🛡️ Riskijuhtimine</div>
+      <div class="field"><label>Risk % kontost</label><input type="number" id="riskPct" value="1.0" min="0.1" max="10" step="0.1"></div>
+      <div class="field-row">
+        <div class="field"><label>Stop Loss (pts)</label><input type="number" id="slPoints" value="500" min="10"></div>
+        <div class="field"><label>Take Profit (pts)</label><input type="number" id="tpPoints" value="1000" min="10"></div>
+      </div>
+      <div class="field"><label>Max Drawdown %</label><input type="number" id="maxDD" value="10" min="1" max="50"></div>
+      <div class="field-row">
+        <div class="field"><label>Trailing Stop</label><input type="number" id="trailPts" value="300" min="0"></div>
+        <div class="field"><label>Trailing Step</label><input type="number" id="trailStep" value="50" min="0"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="applySettings()">💾 Salvesta seaded</button>
+    <button class="btn btn-export" onclick="exportMQL()">📤 Ekspordi MQL5 koodi</button>
+    <button class="btn btn-danger" onclick="resetSettings()">🔄 Lähtesta vaikeväärtused</button>
+  </aside>
+
+  <main class="main">
+    <div class="cards">
+      <div class="card"><div class="label">Saldo</div><div class="value blue" id="cardBalance">€10,000</div><div class="sub">Demokonto</div></div>
+      <div class="card"><div class="label">Kasum / Kahjum</div><div class="value green" id="cardPnL">+€0.00</div><div class="sub" id="cardPnLPct">0.00%</div></div>
+      <div class="card"><div class="label">Avatud tehingud</div><div class="value gold" id="cardTrades">0</div><div class="sub" id="cardWinRate">Edukus: --</div></div>
+      <div class="card"><div class="label">Viimane signaal</div><div class="value" id="cardSignal" style="color:var(--text3)">● OOTA</div><div class="sub" id="cardSignalTime">--</div></div>
+    </div>
+
+    <div class="chart-area"><canvas class="chart-canvas" id="chartCanvas"></canvas></div>
+
+    <div class="rules-panel">
+      <div class="rules-header"><h3>📋 Strateegia reeglid</h3><button class="btn btn-primary" style="width:auto;padding:6px 14px;font-size:12px" onclick="addRule()">+ Lisa reegel</button></div>
+      <div class="rules-body" id="rulesBody">
+        <div class="rule"><div class="rule-info"><div class="rule-name">MA Crossover – OST</div><div class="rule-desc">Kiire MA ristub aeglase MA kohale</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+        <div class="rule"><div class="rule-info"><div class="rule-name">MA Crossover – MÜÜK</div><div class="rule-desc">Kiire MA ristub aeglase MA alla</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+        <div class="rule"><div class="rule-info"><div class="rule-name">RSI filter</div><div class="rule-desc">Filtreerib signaalid üleostetud/ülemüüdud tasemetel</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+        <div class="rule"><div class="rule-info"><div class="rule-name">Spread kontroll</div><div class="rule-desc">Blokeerib kauplemise kui spread > max</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+        <div class="rule"><div class="rule-info"><div class="rule-name">Trailing Stop</div><div class="rule-desc">Liigutab SL kasumi suunas</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+      </div>
+    </div>
+
+    <div class="log-panel">
+      <div class="log-header"><h3>📜 Signaalide logi</h3><button class="btn" style="width:auto;padding:4px 12px;font-size:11px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)" onclick="clearLog()">Tühjenda</button></div>
+      <div class="log-body" id="logBody"></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// State
+let balance = 10000, pnl = 0, trades = 0, wins = 0, signal = 'NONE';
+const defaults = {fastMA:10,slowMA:50,maMethod:'EMA',rsiPeriod:14,rsiOB:70,rsiOS:30,timeframe:'H1',riskPct:1,slPoints:500,tpPoints:1000,maxDD:10,trailPts:300,trailStep:50};
+
+function getSettings() {
+  return {
+    fastMA: +document.getElementById('fastMA').value,
+    slowMA: +document.getElementById('slowMA').value,
+    maMethod: document.getElementById('maMethod').value,
+    rsiPeriod: +document.getElementById('rsiPeriod').value,
+    rsiOB: +document.getElementById('rsiOB').value,
+    rsiOS: +document.getElementById('rsiOS').value,
+    timeframe: document.getElementById('timeframe').value,
+    riskPct: +document.getElementById('riskPct').value,
+    slPoints: +document.getElementById('slPoints').value,
+    tpPoints: +document.getElementById('tpPoints').value,
+    maxDD: +document.getElementById('maxDD').value,
+    trailPts: +document.getElementById('trailPts').value,
+    trailStep: +document.getElementById('trailStep').value
+  };
+}
+
+function applySettings() {
+  const s = getSettings();
+  if (s.fastMA >= s.slowMA) { showToast('⚠️ Kiire MA peab olema väiksem kui aeglane!', true); return; }
+  if (s.rsiOS >= s.rsiOB) { showToast('⚠️ RSI ülemüüdud peab olema väiksem kui üleostetud!', true); return; }
+  localStorage.setItem('mareki_settings', JSON.stringify(s));
+  addLogEntry('info', `Seaded salvestatud: MA(${s.fastMA}/${s.slowMA}) RSI(${s.rsiPeriod}) Risk(${s.riskPct}%)`);
+  showToast('✅ Seaded salvestatud!');
+}
+
+function resetSettings() {
+  Object.keys(defaults).forEach(k => { const el = document.getElementById(k); if(el) el.value = defaults[k]; });
+  addLogEntry('warn', 'Seaded lähtestatud vaikeväärtustele');
+  showToast('🔄 Vaikeväärtused taastatud');
+}
+
+function exportMQL() {
+  const s = getSettings();
+  const methods = {SMA:'MODE_SMA',EMA:'MODE_EMA',SMMA:'MODE_SMMA',LWMA:'MODE_LWMA'};
+  const tfs = {M15:'PERIOD_M15',H1:'PERIOD_H1',H4:'PERIOD_H4',D1:'PERIOD_D1'};
+  const code = `// MarekiEA seaded – genereeritud ${new Date().toLocaleString('et-EE')}
+// Kopeeri need väärtused EA sisend-parameetritesse
+
+// Strateegia
+InpFastMA_Period   = ${s.fastMA};
+InpSlowMA_Period   = ${s.slowMA};
+InpMA_Method       = ${methods[s.maMethod]};
+InpTradingTF       = ${tfs[s.timeframe]};
+InpRSI_Period      = ${s.rsiPeriod};
+InpRSI_Overbought  = ${s.rsiOB}.0;
+InpRSI_Oversold    = ${s.rsiOS}.0;
+
+// Riskijuhtimine
+InpRiskPercent     = ${s.riskPct};
+InpStopLoss_Pts    = ${s.slPoints};
+InpTakeProfit_Pts  = ${s.tpPoints};
+InpMaxDrawdown     = ${s.maxDD}.0;
+InpTrailingStop_Pts= ${s.trailPts};
+InpTrailingStep_Pts= ${s.trailStep};
+`;
+  const blob = new Blob([code], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'MarekiEA_settings.mqh'; a.click();
+  addLogEntry('info', 'MQL5 seaded eksporditud faili');
+  showToast('📤 Seaded eksporditud!');
+}
+
+function addRule() {
+  const name = prompt('Reegli nimi:');
+  if (!name) return;
+  const desc = prompt('Reegli kirjeldus:') || '';
+  const rb = document.getElementById('rulesBody');
+  const div = document.createElement('div'); div.className = 'rule';
+  div.innerHTML = `<div class="rule-info"><div class="rule-name">${name}</div><div class="rule-desc">${desc}</div></div><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>`;
+  rb.appendChild(div);
+  addLogEntry('info', `Uus reegel lisatud: ${name}`);
+  showToast('✅ Reegel lisatud!');
+}
+
+function addLogEntry(type, msg) {
+  const body = document.getElementById('logBody');
+  const now = new Date().toLocaleTimeString('et-EE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const cls = {buy:'log-buy',sell:'log-sell',info:'log-info',warn:'log-warn'}[type] || 'log-info';
+  const icons = {buy:'🟢',sell:'🔴',info:'ℹ️',warn:'⚠️'};
+  const div = document.createElement('div'); div.className = `log-entry ${cls}`;
+  div.innerHTML = `<span class="log-time">${now}</span><span>${icons[type]||'ℹ️'} ${msg}</span>`;
+  body.prepend(div);
+  if (body.children.length > 100) body.removeChild(body.lastChild);
+}
+
+function clearLog() { document.getElementById('logBody').innerHTML = ''; }
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = isError ? 'var(--red)' : 'var(--accent)';
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Simulated price chart
+function drawChart() {
+  const canvas = document.getElementById('chartCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * 2; canvas.height = canvas.offsetHeight * 2;
+  ctx.scale(2, 2);
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+
+  // Generate price data
+  const points = 120; let price = 1.1000;
+  const prices = []; for (let i = 0; i < points; i++) { price += (Math.random() - 0.498) * 0.003; prices.push(price); }
+  const s = getSettings();
+  // Fast MA
+  const fastMA = []; for (let i = 0; i < points; i++) { let sum = 0, c = 0; for (let j = Math.max(0, i - s.fastMA + 1); j <= i; j++) { sum += prices[j]; c++; } fastMA.push(sum / c); }
+  // Slow MA
+  const slowMA = []; for (let i = 0; i < points; i++) { let sum = 0, c = 0; for (let j = Math.max(0, i - s.slowMA + 1); j <= i; j++) { sum += prices[j]; c++; } slowMA.push(sum / c); }
+
+  const allVals = [...prices, ...fastMA, ...slowMA];
+  const minP = Math.min(...allVals), maxP = Math.max(...allVals);
+  const pad = 30;
+  const toX = i => pad + (i / (points - 1)) * (w - pad * 2);
+  const toY = v => pad + (1 - (v - minP) / (maxP - minP)) * (h - pad * 2);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(42,53,85,0.5)'; ctx.lineWidth = 0.5;
+  for (let i = 0; i < 5; i++) { const y = pad + i * (h - pad*2) / 4; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke(); }
+
+  // Price line
+  ctx.strokeStyle = 'rgba(226,232,240,0.6)'; ctx.lineWidth = 1;
+  ctx.beginPath(); prices.forEach((p, i) => i === 0 ? ctx.moveTo(toX(i), toY(p)) : ctx.lineTo(toX(i), toY(p))); ctx.stroke();
+
+  // Fast MA
+  ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2;
+  ctx.beginPath(); fastMA.forEach((p, i) => i === 0 ? ctx.moveTo(toX(i), toY(p)) : ctx.lineTo(toX(i), toY(p))); ctx.stroke();
+
+  // Slow MA
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+  ctx.beginPath(); slowMA.forEach((p, i) => i === 0 ? ctx.moveTo(toX(i), toY(p)) : ctx.lineTo(toX(i), toY(p))); ctx.stroke();
+
+  // Crossover markers & signals
+  for (let i = 1; i < points; i++) {
+    if (fastMA[i-1] <= slowMA[i-1] && fastMA[i] > slowMA[i]) {
+      ctx.fillStyle = 'rgba(34,197,94,0.9)'; ctx.beginPath(); ctx.arc(toX(i), toY(prices[i]) + 10, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#22c55e'; ctx.font = '10px Inter'; ctx.fillText('▲', toX(i) - 4, toY(prices[i]) + 24);
+    }
+    if (fastMA[i-1] >= slowMA[i-1] && fastMA[i] < slowMA[i]) {
+      ctx.fillStyle = 'rgba(239,68,68,0.9)'; ctx.beginPath(); ctx.arc(toX(i), toY(prices[i]) - 10, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ef4444'; ctx.font = '10px Inter'; ctx.fillText('▼', toX(i) - 4, toY(prices[i]) - 14);
+    }
+  }
+
+  // Legend
+  ctx.font = '11px Inter';
+  ctx.fillStyle = '#e2e8f0'; ctx.fillText('── Hind', w - 180, 18);
+  ctx.fillStyle = '#6366f1'; ctx.fillText(`── Kiire MA(${s.fastMA})`, w - 180, 33);
+  ctx.fillStyle = '#f59e0b'; ctx.fillText(`── Aeglane MA(${s.slowMA})`, w - 180, 48);
+}
+
+// Simulation loop
+function simulate() {
+  const signals = ['NONE','NONE','NONE','NONE','NONE','BUY','SELL'];
+  const sig = signals[Math.floor(Math.random() * signals.length)];
+  if (sig === 'BUY') {
+    trades++; const r = (Math.random() - 0.35) * 50; pnl += r; if (r > 0) wins++;
+    document.getElementById('cardSignal').textContent = '▲ OST';
+    document.getElementById('cardSignal').style.color = 'var(--green)';
+    document.getElementById('cardSignalTime').textContent = new Date().toLocaleTimeString('et-EE');
+    addLogEntry('buy', `OST signaal! Fast MA ristus üle Slow MA`);
+  } else if (sig === 'SELL') {
+    trades++; const r = (Math.random() - 0.35) * 50; pnl += r; if (r > 0) wins++;
+    document.getElementById('cardSignal').textContent = '▼ MÜÜK';
+    document.getElementById('cardSignal').style.color = 'var(--red)';
+    document.getElementById('cardSignalTime').textContent = new Date().toLocaleTimeString('et-EE');
+    addLogEntry('sell', `MÜÜK signaal! Fast MA ristus alla Slow MA`);
+  }
+  document.getElementById('cardBalance').textContent = `€${(balance + pnl).toFixed(2)}`;
+  document.getElementById('cardPnL').textContent = `${pnl >= 0 ? '+' : ''}€${pnl.toFixed(2)}`;
+  document.getElementById('cardPnL').className = `value ${pnl >= 0 ? 'green' : 'red'}`;
+  document.getElementById('cardPnLPct').textContent = `${(pnl / balance * 100).toFixed(2)}%`;
+  document.getElementById('cardTrades').textContent = trades;
+  document.getElementById('cardWinRate').textContent = trades > 0 ? `Edukus: ${(wins/trades*100).toFixed(0)}%` : 'Edukus: --';
+}
+
+// Init
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('mareki_settings');
+  if (saved) { const s = JSON.parse(saved); Object.keys(s).forEach(k => { const el = document.getElementById(k); if(el) el.value = s[k]; }); }
+  drawChart();
+  addLogEntry('info', 'MarekiEA Dashboard käivitatud');
+  addLogEntry('info', 'Demoreziim – simuleeritud signaalid');
+  // Redraw chart when settings change
+  document.querySelectorAll('.sidebar input, .sidebar select').forEach(el => el.addEventListener('change', drawChart));
+  // Simulate signals
+  setInterval(simulate, 5000);
+  // Resize
+  window.addEventListener('resize', drawChart);
+});
+</script>
+</body>
+</html>

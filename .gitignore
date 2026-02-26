@@ -1,0 +1,16 @@
+# Compiled EA files
+*.ex5
+
+# MetaEditor temp files
+*.log
+*.bak
+~*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
