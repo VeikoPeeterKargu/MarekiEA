@@ -975,10 +975,10 @@ function simulate() {
 // === AUTH ===
 // Default: admin / mareki2024 (SHA-256 hash)
 const USERS = {
-  'admin': '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
-  'marek': 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'
+  'marek': '7ecf389caab8829bcec99c8a11583cf8bfb01d7aca3544b3a41bac948bb118e5',
+  'peeter': 'c0a8cf7ffa66a924ac8904d2fcbe2aad06142e4bb6f9320bc4d77b3d02b4a7bf'
 };
-// admin=password, marek=123 (change these!)
+// marek=Marek123, peeter=Peeter123
 
 async function hashPassword(pw) {
   const data = new TextEncoder().encode(pw);
